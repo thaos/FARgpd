@@ -211,6 +211,10 @@ getFAR.boxcox <- function(pt0,pt1,xp,ydat,prange=seq(-10,10,0.1),to.plot=FALSE){
 	mu.pred=with(res,par[1]+par[2]*covariate)
 	sigma2.pred=with(res,par[3]+par[4]*covariate)
 	residus=(ylambda-mu.pred)/sqrt(sigma2.pred)
+	sigma2.pred0=with(res,par[3]+par[4]*pt0[2])
+	sigma2.pred1=with(res,par[3]+par[4]*pt1[2])
+	r0=(xplambda-mu.pred0)/sqrt(sigma2.pred0)
+	r1=(xplambda-mu.pred1)/sqrt(sigma2.pred1)
 	#         print(shapiro.test(residus))
 	#         print(Box.test(residus))
 	#         print(PP.test(c(residus)))
@@ -218,18 +222,16 @@ getFAR.boxcox <- function(pt0,pt1,xp,ydat,prange=seq(-10,10,0.1),to.plot=FALSE){
 	tc=tcplot_sthao(residus)
 	# Easton avec threshold fixe 
 	threshold=select.mu(tc)
-	rate=mean(residus>=threshold)
-	residus.fit=fevd(residus,threshold=threshold,type="GP",time.units="years")
-	mle=residus.fit$results$par
-	mu.pred0=with(res,par[1]+par[2]*pt0[2])
-	mu.pred1=with(res,par[1]+par[2]*pt1[2])
-	sigma2.pred0=with(res,par[3]+par[4]*pt0[2])
-	sigma2.pred1=with(res,par[3]+par[4]*pt1[2])
-	r0=(xplambda-mu.pred0)/sqrt(sigma2.pred0)
-	r1=(xplambda-mu.pred1)/sqrt(sigma2.pred1)
+	if(is.finite(threshold)){
+		rate=mean(residus>=threshold)
+		residus.fit=fevd(residus,threshold=threshold,type="GP",time.units="years")
+		mle=residus.fit$results$par
+		mu.pred0=with(res,par[1]+par[2]*pt0[2])
+		mu.pred1=with(res,par[1]+par[2]*pt1[2])
+		p0=pevd(r0, scale=mle[1], shape=mle[2], threshold=threshold, type="GP",lower.tail=FALSE)
+		p1=pevd(r1, scale=mle[1], shape=mle[2], threshold=threshold, type="GP",lower.tail=FALSE)
+	}
 	#         print(c(r0,r1))
-	p0=pevd(r0, scale=mle[1], shape=mle[2], threshold=threshold, type="GP",lower.tail=FALSE)
-	p1=pevd(r1, scale=mle[1], shape=mle[2], threshold=threshold, type="GP",lower.tail=FALSE)
 	#         if(r0<threshold) p0=mean(r0<residus) # ou pnorm(r0,lower.tail=FALSE
 	#         if(r0<threshold) p0=mean(r0<residus) # ou pnorm(r0,lower.tail=FALSE
 	if(r0<threshold) p0=pnorm(r0,lower.tail=FALSE)
