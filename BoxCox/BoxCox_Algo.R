@@ -165,10 +165,10 @@ bc.fit=function(covariate,y,range=seq(0.5,1.5,by=0.01),to.plot=FALSE){
 		Lc <- L[cond]
 		LVc <- LV[cond]
 		par(mfrow=c(1,2))
-		plot(L,LV,type="l",ylab="")
-		boxcox(y~covariate,lambda=seq(-10,10,.1))
+		plot(Lc,LVc,type="l",ylab="")
+		boxcox(y~covariate,lambda=L)
 	}
-	lambda=(maxf=optimize(function(L)lambda_lik(L,covariate,y)$objective,range(L),maximum=FALSE))$minimum
+	lambda=(maxf=optimize(function(l)lambda_lik(l,covariate,y)$objective,range(L),maximum=FALSE))$minimum
 	#         print(lambda)
 	res=lambda_lik(lambda,covariate,y)
 	res$lambda=lambda
@@ -197,19 +197,26 @@ bc.fit.original=function(t,y,range=seq(-1,1,by=0.01)){
 	lambda
 }
 
-getFAR.boxcox <- function(pt0,pt1,xp,ydat,prange=seq(-10,10,0.1),to.plot=FALSE){
+getFAR.boxcox <- function(pt0,pt1,xp,ydat,L=seq(-10,10,0.1),to.plot=FALSE){
+	if(any(ydat$y<= 0)){
+		offs=+ceiling(abs(min(ydat$y)))
+		ydat$y=ydat$y+offs
+		xp=xp+offs
+	}
 	covariate=ydat$mua
 	sf=exp(mean(log(ydat$y)))
 	#         res=with(ydat,bc.fit(mua,y,range=prange,to.plot=TRUE))
-	res=with(ydat,bc.fit(mua,y,range=prange))
+	res=with(ydat,bc.fit(mua,y,range=L))
 	lambda=res$lambda
-	#         print(lambda)
+	print(lambda)
 	#         res=with(ydat,lambda_lik(lambda,covariate,y/sf))
 	#         res$lambda=lambda
 	ylambda=g(ydat$y/sf,lambda)
 	xplambda=g(xp/sf,lambda)
 	mu.pred=with(res,par[1]+par[2]*covariate)
 	sigma2.pred=with(res,par[3]+par[4]*covariate)
+	mu.pred0=with(res,par[1]+par[2]*pt0[2])
+	mu.pred1=with(res,par[1]+par[2]*pt1[2])
 	residus=(ylambda-mu.pred)/sqrt(sigma2.pred)
 	sigma2.pred0=with(res,par[3]+par[4]*pt0[2])
 	sigma2.pred1=with(res,par[3]+par[4]*pt1[2])
@@ -223,17 +230,17 @@ getFAR.boxcox <- function(pt0,pt1,xp,ydat,prange=seq(-10,10,0.1),to.plot=FALSE){
 	# Easton avec threshold fixe 
 	threshold=select.mu(tc)
 	if(is.finite(threshold)){
+		print("Path 1")
 		rate=mean(residus>=threshold)
 		residus.fit=fevd(residus,threshold=threshold,type="GP",time.units="years")
 		mle=residus.fit$results$par
-		mu.pred0=with(res,par[1]+par[2]*pt0[2])
-		mu.pred1=with(res,par[1]+par[2]*pt1[2])
 		p0=pevd(r0, scale=mle[1], shape=mle[2], threshold=threshold, type="GP",lower.tail=FALSE)
 		p1=pevd(r1, scale=mle[1], shape=mle[2], threshold=threshold, type="GP",lower.tail=FALSE)
 	}
 	#         print(c(r0,r1))
 	#         if(r0<threshold) p0=mean(r0<residus) # ou pnorm(r0,lower.tail=FALSE
 	#         if(r0<threshold) p0=mean(r0<residus) # ou pnorm(r0,lower.tail=FALSE
+		print("Direct 2 Path 2")
 	if(r0<threshold) p0=pnorm(r0,lower.tail=FALSE)
 	if(r1<threshold) p1=pnorm(r1,lower.tail=FALSE)
 	if(to.plot){
@@ -243,6 +250,5 @@ getFAR.boxcox <- function(pt0,pt1,xp,ydat,prange=seq(-10,10,0.1),to.plot=FALSE){
 		plot(ydat$year,residus)
 	}
 	res=FAR(p0,p1)
-	print(res)
 	res
 }
