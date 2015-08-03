@@ -107,17 +107,18 @@ FARBoot <- function(ydat,indice,qthreshold,pt1,pt0){
 	getFAR(pt1,pt0,y.fit,data.b)
 }
 
-FARBoot.bc <- function(ydat,indice,qthreshold,pt1,pt0){
+FARBoot.bc <- function(ydat,indice,qthreshold,pt1,pt0,L=seq(-10,10,.1)){
 	data.b=ydat[indice,]
 	data.b=data.b[order(data.b$year),]
-	res=getFAR.boxcox(pt0,pt1,xp,data.b,to.plot=FALSE)
+	res=getFAR.boxcox(pt0,pt1,xp,data.b,to.plot=FALSE,L=L)
 	res
 }
 
 FARBoot.or <- function(ydat,indice,qthreshold,pt1,pt0){
 	data.b=ydat[indice,]
 	data.b=data.b[order(data.b$year),]
-	far.or=getFAR.oridea(pt0,pt1,xp,ydat,to.plot=FALSE)
+	res=getFAR.oridea(pt0,pt1,xp,data.b,to.plot=FALSE)
+	res
 }
 
 
