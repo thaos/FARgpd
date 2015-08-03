@@ -146,7 +146,7 @@ tcplot_sthao <- function(data, tlim = NULL, nt = min(100, length(data)), alpha=0
   }
   mleresults = matrix(NA, nrow = nt, ncol = 11)
   for (i in 1:nt) {
-    tc=try({mleresults[i,] = mle.calc(data, thresholds[i], alpha)})
+    tc=try({mleresults[i,] = mle.calc(data, thresholds[i], alpha)}, silent=TRUE)
     if(class(tc)=="try-error" ) {
 	break
 	}

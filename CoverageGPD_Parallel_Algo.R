@@ -36,6 +36,10 @@ TestSeveralConf <- function(listqt=seq(0.85,0.95,0.05),listt0=c(1880,1900,1970),
 				trysection=try({
 				ICs=Coverage(thisEnv)
 				print(ICs)
+				print(ICs[,1]-ICs[,2])
+				print(all.equal(ICs[,1],ICs[,2]))
+				print(ICs[,1]-ICs[,3])
+				print(all.equal(ICs[,1],ICs[,3]))
 				coverage=with(ICs,mean(Theoric >= LowerCI & Theoric <= UpperCI))
 				print(coverage)
 			})

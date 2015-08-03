@@ -198,6 +198,7 @@ bc.fit.original=function(t,y,range=seq(-1,1,by=0.01)){
 }
 
 getFAR.boxcox <- function(pt0,pt1,xp,ydat,L=seq(-10,10,0.1),to.plot=FALSE){
+	print("**********************************************************")
 	if(any(ydat$y<= 0)){
 		offs=+ceiling(abs(min(ydat$y)))
 		ydat$y=ydat$y+offs
@@ -232,23 +233,44 @@ getFAR.boxcox <- function(pt0,pt1,xp,ydat,L=seq(-10,10,0.1),to.plot=FALSE){
 	if(is.finite(threshold)){
 		print("Path 1")
 		rate=mean(residus>=threshold)
+		#                 print(rate)
 		residus.fit=fevd(residus,threshold=threshold,type="GP",time.units="years")
 		mle=residus.fit$results$par
 		p0=pevd(r0, scale=mle[1], shape=mle[2], threshold=threshold, type="GP",lower.tail=FALSE)
 		p1=pevd(r1, scale=mle[1], shape=mle[2], threshold=threshold, type="GP",lower.tail=FALSE)
+		#                 print(p0)
+		#                 print(p1)
+		p0=p0*rate
+		p1=p1*rate
 	}
 	#         print(c(r0,r1))
 	#         if(r0<threshold) p0=mean(r0<residus) # ou pnorm(r0,lower.tail=FALSE
 	#         if(r0<threshold) p0=mean(r0<residus) # ou pnorm(r0,lower.tail=FALSE
 		print("Direct 2 Path 2")
-	if(r0<threshold) p0=pnorm(r0,lower.tail=FALSE)
-	if(r1<threshold) p1=pnorm(r1,lower.tail=FALSE)
+		#         if(r0<threshold) p0=pnorm(r0,lower.tail=FALSE)
+		#         if(r1<threshold) p1=pnorm(r1,lower.tail=FALSE)
+	if(r0<threshold) p0=mean(r0<residus) # ou pnorm(r0,lower.tail=FALSE
+	if(r1<threshold) p1=mean(r1<residus) # ou pnorm(r1,lower.tail=FALSE
 	if(to.plot){
-		par(mfrow=c(1,3))
+		par(mfrow=c(2,2))
 		plot(ydat$year,ydat$y)
+		abline(h=xp)
 		plot(ydat$year,ylambda)
+		abline(h=xplambda)
 		plot(ydat$year,residus)
+		abline(h=r0,col="violet")
+		abline(h=r1,col="blue")
+		if(is.finite(threshold))
+			abline(h=threshold,col="red")
+		hist(residus)
+		abline(v=r0,col="violet")
+		abline(v=r1,col="blue")
+		if(is.finite(threshold))
+			abline(v=threshold,col="red")
 	}
-	res=FAR(p0,p1)
-	res
+	far=FAR(p0,p1)
+	#         print(far)
+	#         if(far < 0)
+	#                 print(res$par)
+	far
 }

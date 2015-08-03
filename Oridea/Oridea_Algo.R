@@ -41,16 +41,17 @@ select.mu <- function(tc){
 	i=1
 	while(!found){
 		if(i> length(u)){
-			par(mfrow=c(2,1))
-			plot(u,xi)
-			lines(u,cil.xi,col="red")
-			lines(u,ciu.xi,col="red")
-			plot(u,mod.sigmau)
-			lines(u,mod.cil.sigmau,col="red")
-			lines(u,mod.ciu.sigmau,col="red")
-			browser()
+			message("no threshold found")
+			#                         par(mfrow=c(2,1))
+			#                         plot(u,xi)
+			#                         lines(u,cil.xi,col="red")
+			#                         lines(u,ciu.xi,col="red")
+			#                         plot(u,mod.sigmau)
+			#                         lines(u,mod.cil.sigmau,col="red")
+			#                         lines(u,mod.ciu.sigmau,col="red")
+			#                         browser()
 			return(Inf)
-			stop("no threshold found")
+			#                         stop("no threshold found")
 		}
 		mu.cur=u[i]
 		sig.cur=mod.sigmau[i]
@@ -80,7 +81,7 @@ getRP1 <- function(x,y,m,x0,threshold,gpd.fit){
 	res
 }
 getRP0 <- function(y,m,x0,threshold,gpd.fit){
-	if(s < threshold){
+	if(y < threshold){
 		p=getP.or(c(x0,y),m)
 		message("value inferior to threshold")
 		return(1-p)

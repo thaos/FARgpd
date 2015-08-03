@@ -30,16 +30,15 @@ make_Boot2Execute <- function(f_boot){
 		c1=ydat$mua[i1]
 		pt0=c(t0,c0,xp)
 		pt1=c(t1,c1,xp)
+		# First result of f_boot must be the FAR
 		boot.res=boot(data=ydat,statistic=f_boot,R=250,pt1=pt1,pt0=pt0,qthreshold=qthreshold, parallel="snow")
-		theta.boot=colMeans(boot.res$t)
-		r.boot=mean(boot.res$t)
-		r.boot=theta.boot[1]
+		r.boot=boot.res$t[,1]
 		if(is.na(r.boot))
 			browser()
 		alpha=0.05
-		ic.boot=quantile(boot.res$t,p=c(alpha/2,1-alpha/2))
-		ic.boot=apply(boot.res$t,2,quantile,p=c(alpha/2,1-alpha/2))
-		boot.ic=c(ic.boot[1,1],r.boot,ic.boot[2,1])
+		ic.boot=quantile(r.boot$t,p=c(alpha/2,1-alpha/2))
+		r.mean=mean(r.boot)
+		boot.ic=c(ic.boot[1],r.mean,ic.boot[1])
 		r.theo=getFAR.theo(xp=xp,i0=i0,i1=i1,mu,sigma)
 		names(boot.ic) <- c("LowerCI", "Estimate", "UpperCI")
 		res=c(r.theo,boot.ic)
